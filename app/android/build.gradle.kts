@@ -46,31 +46,7 @@ android {
         }
     }
 
-    val properties = Properties()
-    runCatching { project.rootProject.file("local.properties").reader(Charsets.UTF_8).use(properties::load) }
-    val keystorePath = properties.getProperty("KEYSTORE_PATH") ?: System.getenv("KEYSTORE_PATH")
-    val keystorePwd = properties.getProperty("KEYSTORE_PASS") ?: System.getenv("KEYSTORE_PASS")
-    val alias = properties.getProperty("KEY_ALIAS") ?: System.getenv("KEY_ALIAS")
-    val pwd = properties.getProperty("KEY_PASSWORD") ?: System.getenv("KEY_PASSWORD")
-    if (keystorePath != null) {
-        signingConfigs {
-            register("github") {
-                storeFile = file(keystorePath)
-                storePassword = keystorePwd
-                keyAlias = alias
-                keyPassword = pwd
-                enableV3Signing = true
-                enableV4Signing = true
-            }
-        }
-    } else {
-        signingConfigs {
-            register("release") {
-                enableV3Signing = true
-                enableV4Signing = true
-            }
-        }
-    }
+    // 已移除读取签名信息的代码和 signingConfigs 注册
 
     buildTypes {
         release {
@@ -78,10 +54,11 @@ android {
             isShrinkResources = true
             vcsInfo.include = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules-android.pro")
-            signingConfig = signingConfigs.getByName(if (keystorePath != null) "github" else "debug")
+            // 强制使用 debug 签名，跳过正式签名配置
+            signingConfig = signingConfigs.getByName("debug")
         }
         debug {
-            if (keystorePath != null) signingConfig = signingConfigs.getByName("github")
+            // 默认使用 debug 签名，无需额外配置
         }
     }
 
